@@ -15,7 +15,6 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Product from "./models/ProductModel";
 
-
 export default function App() {
   const skillsData = [
     "Creative",
@@ -42,7 +41,6 @@ export default function App() {
     "i like the suggestion, Show more",
   ];
   const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [toyListData, setToyList] = useState([]);
   const [showFilters, setShowFilters] = useState(true);
   const [selectedSkills, setselectedSkills] = useState([]);
@@ -50,10 +48,13 @@ export default function App() {
   const [selectedPrice, setselectedPrice] = useState(0);
   const [excludeIds, setExcludeIds] = useState([]); //Temparory array
   const [triggerDifferentFetch, setTriggerDifferentFetch] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Main Loader
+
 
   useEffect(() => {
     if (triggerDifferentFetch) {
-      fetchSearchResults(0);
+      fetchSearchResults(0,true);
       setTriggerDifferentFetch(false);
     }
   }, [excludeIds, triggerDifferentFetch]);
@@ -66,14 +67,16 @@ export default function App() {
 
   useEffect(() => {
     setTriggerDifferentFetch(false);
-    fetchSearchResults((skipCount = 0)); // or pass selectedSkills if needed
+    fetchSearchResults((skipCount = 0,true)); // or pass selectedSkills if needed
   }, [selectedSkills, selectedMood]);
 
-  const fetchSearchResults = async (skipCount = 0) => {
+  const fetchSearchResults = async (skipCount = 0 , showLoader = true) => {
     if (!query) return;
     Keyboard.dismiss();
-    setIsLoading(true);
+    if (showLoader) setIsLoading(true);
     await callFetchApi((skipCount = skipCount));
+    if (showLoader) setIsLoading(false); // Hide loader after load
+
   };
   const callFetchApi = async (skipCount = 0) => {
     try {
@@ -109,13 +112,13 @@ export default function App() {
     } catch (error) {
       fetchProductData();
     } finally {
-      setIsLoading(false);
     }
   };
 
   const setProductData = (response, count) => {
+    setIsLoadingMore(false);
     const products = response.data.results.map((item) => new Product(item));
-
+     console.log('products',products);
     setToyList((prevList) => {
       if (count === 0) {
         setToyList([]);
@@ -134,6 +137,14 @@ export default function App() {
       setShowFilters(true);
     }
   };
+
+  const handleLoadMore = async () => {
+    if (isLoadingMore) return;
+    setIsLoadingMore(true);
+    await fetchSearchResults(toyListData.length,false); // skipCount = current list length
+    setTriggerDifferentFetch(false);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Smart Toy Finder</Text>
@@ -149,8 +160,9 @@ export default function App() {
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => {
+            
             setTriggerDifferentFetch(false);
-            fetchSearchResults((skipCount = 0));
+            fetchSearchResults((skipCount = 0, true));
           }}
         >
           <Text style={styles.searchButtonText}>Search</Text>
@@ -186,7 +198,7 @@ export default function App() {
             price={selectedPrice}
             onSlidingComplete={() => {
               setTriggerDifferentFetch(false);
-              fetchSearchResults((skipCount = 0));
+              fetchSearchResults((skipCount = 0,true));
             }}
             onselectedPrice={(priceSelected = 0) => {
               console.log("Price selected is :", priceSelected);
@@ -212,7 +224,7 @@ export default function App() {
                   setTriggerDifferentFetch(true);
                 } else {
                   setTriggerDifferentFetch(false);
-                  fetchSearchResults((skipCount = skipCount + 6));
+                  fetchSearchResults((skipCount = skipCount + 6,true));
                 }
               }}
             />
@@ -221,6 +233,7 @@ export default function App() {
           )}
         </>
       )}
+      
       {isLoading ? (
         <ActivityIndicator
           size="large"
@@ -231,6 +244,8 @@ export default function App() {
         <ToyGrid
           toyData={toyListData}
           onScroll={handleToyListScroll}
+          onEndReached={handleLoadMore}
+         // isLoadingMore={isLoadingMore}
           onselectedProduct={(selectedProduct) => {
             console.log("User clicked product is :", selectedProduct);
           }}
@@ -292,7 +307,7 @@ const styles = StyleSheet.create({
 const fetchProductData = async () => {
   Keyboard.dismiss();
   if (!query) return;
-  setIsLoading(true);
+ 
   try {
     const response = await axios.post(
       "https://eqlmkznf35a5425vys2jy1w1-fast.searchtap.net/v2",
@@ -358,6 +373,6 @@ const fetchProductData = async () => {
   } catch (error) {
     console.error("Error fetching search results:", error);
   } finally {
-    setIsLoading(false);
+   
   }
 };

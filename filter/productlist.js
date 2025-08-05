@@ -7,13 +7,14 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator
 } from "react-native";
 
 const numColumns = 2;
 const screenWidth = Dimensions.get("window").width;
 const itemWidth = (screenWidth - 48) / 2;
 
-export default function ToyGrid({ toyData = [], onselectedProduct, onScroll }) {
+export default function ToyGrid({ toyData = [], onselectedProduct, onScroll,  onEndReached,isLoadingMore }) {
   const renderItem = ({ item }) => {
     const title = item.title || "";
     const imageUrl =
@@ -74,7 +75,16 @@ export default function ToyGrid({ toyData = [], onselectedProduct, onScroll }) {
           onScroll={onScroll}
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}
-          ListFooterComponent={<View style={{ height: 100 }} />}
+         
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+      isLoadingMore ? (
+        <View style={{ padding: 16 }}>
+          <ActivityIndicator size="small" color="#007BFF" />
+        </View>
+      ) : null
+    }
         />
       )}
     </View>
