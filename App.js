@@ -8,12 +8,12 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import SkillsRow from "./.expo/filter/skillbased";
-import PriceSlider from "./.expo/filter/pricebase";
-import ToyGrid from "./.expo/filter/productlist";
+import SkillsRow from "./filter/skillbased";
+import PriceSlider from "./filter/pricebase";
+import ToyGrid from "./filter/productlist";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import Product from "./.expo/models/ProductModel";
+import Product from "./models/ProductModel";
 
 
 export default function App() {
