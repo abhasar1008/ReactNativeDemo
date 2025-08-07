@@ -76,7 +76,6 @@ export default function App() {
     if (showLoader) setIsLoading(true);
     await callFetchApi((skipCount = skipCount));
     if (showLoader) setIsLoading(false); // Hide loader after load
-
   };
   const callFetchApi = async (skipCount = 0) => {
     try {
@@ -97,7 +96,7 @@ export default function App() {
         payload.skip = skipCount;
       }
 
-      console.log("Payload is :", payload);
+      console.log('payload is',payload)
       const response = await axios.post(
         "http://10.37.55.56:8000/semantic_search",
         payload,
@@ -118,7 +117,7 @@ export default function App() {
   const setProductData = (response, count) => {
     setIsLoadingMore(false);
     const products = response.data.results.map((item) => new Product(item));
-     console.log('products',products);
+    console.log('products is',products)
     setToyList((prevList) => {
       if (count === 0) {
         setToyList([]);
@@ -160,7 +159,6 @@ export default function App() {
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => {
-            
             setTriggerDifferentFetch(false);
             fetchSearchResults((skipCount = 0, true));
           }}
@@ -201,7 +199,7 @@ export default function App() {
               fetchSearchResults((skipCount = 0,true));
             }}
             onselectedPrice={(priceSelected = 0) => {
-              console.log("Price selected is :", priceSelected);
+             
               if (priceSelected === 0) {
               } else {
                 setselectedPrice(priceSelected);
@@ -235,11 +233,14 @@ export default function App() {
       )}
       
       {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color="#007BFF"
-          style={{ marginTop: 20 }}
-        />
+<View style={styles.loadingOverlay}>
+  <ActivityIndicator
+    size="large"
+    color="#007BFF"
+    style={{ marginTop: 20 }}
+  />
+</View>
+       
       ) : (
         <ToyGrid
           toyData={toyListData}
@@ -247,7 +248,7 @@ export default function App() {
           onEndReached={handleLoadMore}
          // isLoadingMore={isLoadingMore}
           onselectedProduct={(selectedProduct) => {
-            console.log("User clicked product is :", selectedProduct);
+          
           }}
         ></ToyGrid>
       )}
@@ -263,6 +264,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 70,
     marginBottom: 10,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
   },
   title: {
     fontSize: 35,
