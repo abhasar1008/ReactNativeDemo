@@ -11,7 +11,7 @@ class Variant {
 
 class Image {
   constructor(data) {
-    this.url = data.url;
+    this.url = data.url || data.src;
     this.altText = data.altText;
     this.width = data.width;
     this.height = data.height;

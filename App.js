@@ -26,7 +26,7 @@ export default function App() {
     "Building",
     "Reading",
   ];
-  const moddDataData = [
+  const moodData = [
     "Curious",
     "Energrtic",
     "happy",
@@ -43,18 +43,17 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [toyListData, setToyList] = useState([]);
   const [showFilters, setShowFilters] = useState(true);
-  const [selectedSkills, setselectedSkills] = useState([]);
-  const [selectedMood, setselectedMood] = useState([]);
-  const [selectedPrice, setselectedPrice] = useState(0);
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedMood, setSelectedMood] = useState([]);
+  const [selectedPrice, setSelectedPrice] = useState(0);
   const [excludeIds, setExcludeIds] = useState([]); //Temparory array
   const [triggerDifferentFetch, setTriggerDifferentFetch] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Main Loader
 
-
   useEffect(() => {
     if (triggerDifferentFetch) {
-      fetchSearchResults(0,true);
+      fetchSearchResults(0, true);
       setTriggerDifferentFetch(false);
     }
   }, [excludeIds, triggerDifferentFetch]);
@@ -66,11 +65,12 @@ export default function App() {
   }, [triggerDifferentFetch]);
 
   useEffect(() => {
+    setToyList([]);
     setTriggerDifferentFetch(false);
-    fetchSearchResults((skipCount = 0,true)); // or pass selectedSkills if needed
+    fetchSearchResults(0, true); // or pass selectedSkills if needed
   }, [selectedSkills, selectedMood]);
 
-  const fetchSearchResults = async (skipCount = 0 , showLoader = true) => {
+  const fetchSearchResults = async (skipCount = 0, showLoader = true) => {
     if (!query) return;
     Keyboard.dismiss();
     if (showLoader) setIsLoading(true);
@@ -95,10 +95,8 @@ export default function App() {
       if (skipCount !== 0) {
         payload.skip = skipCount;
       }
-
-      console.log('payload is',payload)
       const response = await axios.post(
-        "http://10.37.55.56:8000/semantic_search",
+        "http://snooplay-semantic-api-real.eastus.azurecontainer.io:8000/semantic_search",
         payload,
         {
           headers: {
@@ -107,6 +105,7 @@ export default function App() {
           },
         }
       );
+      console.log("payload", payload);
       setProductData(response, skipCount);
     } catch (error) {
       fetchProductData();
@@ -114,7 +113,78 @@ export default function App() {
     }
   };
 
-  const setProductData = (response, count) => {
+  const fetchProductData = async () => {
+    console.log("fetchProductData");
+    Keyboard.dismiss();
+    if (!query) return;
+    try {
+      const response = await axios.post(
+        "https://eqlmkznf35a5425vys2jy1w1-fast.searchtap.net/v2",
+        {
+          query: query,
+          count: 50,
+          use_searchtap: true,
+          fields: [
+            "id",
+            "collections",
+            "discount",
+            "discounted_price",
+            "images",
+            "handle",
+            "hasMultiplePrice",
+            "price",
+            "reviews_count",
+            "ideal_for_months",
+            "title",
+            "reviews_average",
+            "isActive",
+            "vendor",
+            "variants",
+            "tags",
+            "ideal_for_weights",
+            "options",
+            "size",
+            "meta_avg_ratings",
+            "meta_reviews_count",
+            "variantWithMaxPrice",
+            "variantWithMinPrice",
+            "meta_short_desc",
+          ],
+          textFacets: [],
+          highlightFields: [],
+          searchFields: ["*"],
+          filter: "isSearchable = 1 AND discounted_price > 0 AND isActive = 1",
+          sort: ["-isActive", "-_rank"],
+          skip: 0,
+          count: 10,
+          collection: "1KJ6W6DQYQI78XJQVRE666NI",
+          facetCount: 100,
+          groupCount: -1,
+          typoTolerance: 2,
+          textFacetFilters: {},
+          numericFacets: {},
+          numericFacetFilters: {},
+          textFacetQuery: null,
+          geo: {},
+        },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Origin: "https://snooplay.in",
+            Authorization: "Bearer 9DFFEFB37BILEAHUF86UPDVM",
+          },
+        }
+      );
+      const products = response.data.results.map((item) => new Product(item));
+      setToyList(products);
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+    } finally {
+    }
+  };
+
+  const setProductData = (response, count) => {   
     setIsLoadingMore(false);
     const products = response.data.results.map((item) => new Product(item));
     console.log('products is',products)
@@ -140,7 +210,7 @@ export default function App() {
   const handleLoadMore = async () => {
     if (isLoadingMore) return;
     setIsLoadingMore(true);
-    await fetchSearchResults(toyListData.length,false); // skipCount = current list length
+    await fetchSearchResults(toyListData.length, false); // skipCount = current list length
     setTriggerDifferentFetch(false);
   };
 
@@ -159,8 +229,9 @@ export default function App() {
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => {
+            setToyList([]);
             setTriggerDifferentFetch(false);
-            fetchSearchResults((skipCount = 0, true));
+            fetchSearchResults(0, true);
           }}
         >
           <Text style={styles.searchButtonText}>Search</Text>
@@ -173,7 +244,7 @@ export default function App() {
             skills={skillsData}
             selectedSkills={selectedSkills}
             onSkillPress={(skill) => {
-              setselectedSkills((prev) =>
+              setSelectedSkills((prev) =>
                 prev.includes(skill)
                   ? prev.filter((s) => s !== skill)
                   : [...prev, skill]
@@ -182,10 +253,10 @@ export default function App() {
           />
           <SkillsRow
             title="Mood"
-            skills={moddDataData}
+            skills={moodData}
             selectedSkills={selectedMood}
             onSkillPress={(skill) => {
-              setselectedMood((prev) =>
+              setSelectedMood((prev) =>
                 prev.includes(skill)
                   ? prev.filter((s) => s !== skill)
                   : [...prev, skill]
@@ -196,13 +267,13 @@ export default function App() {
             price={selectedPrice}
             onSlidingComplete={() => {
               setTriggerDifferentFetch(false);
-              fetchSearchResults((skipCount = 0,true));
+              fetchSearchResults(0, true);
             }}
             onselectedPrice={(priceSelected = 0) => {
-             
               if (priceSelected === 0) {
               } else {
-                setselectedPrice(priceSelected);
+                setToyList([]);
+                setSelectedPrice(priceSelected);
               }
             }}
           />
@@ -222,7 +293,7 @@ export default function App() {
                   setTriggerDifferentFetch(true);
                 } else {
                   setTriggerDifferentFetch(false);
-                  fetchSearchResults((skipCount = skipCount + 6,true));
+                  fetchSearchResults((skipCount = skipCount + 6), true);
                 }
               }}
             />
@@ -231,25 +302,22 @@ export default function App() {
           )}
         </>
       )}
-      
+
       {isLoading ? (
-<View style={styles.loadingOverlay}>
-  <ActivityIndicator
-    size="large"
-    color="#007BFF"
-    style={{ marginTop: 20 }}
-  />
-</View>
-       
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator
+            size="large"
+            color="#007BFF"
+            style={{ marginTop: 20 }}
+          />
+        </View>
       ) : (
         <ToyGrid
           toyData={toyListData}
           onScroll={handleToyListScroll}
           onEndReached={handleLoadMore}
-         // isLoadingMore={isLoadingMore}
-          onselectedProduct={(selectedProduct) => {
-          
-          }}
+          // isLoadingMore={isLoadingMore}
+          onselectedProduct={(selectedProduct) => {}}
         ></ToyGrid>
       )}
       <StatusBar style="auto" />
@@ -315,76 +383,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
-const fetchProductData = async () => {
-  Keyboard.dismiss();
-  if (!query) return;
- 
-  try {
-    const response = await axios.post(
-      "https://eqlmkznf35a5425vys2jy1w1-fast.searchtap.net/v2",
-      {
-        query: query,
-        count: 50,
-        use_searchtap: true,
-        fields: [
-          "id",
-          "collections",
-          "discount",
-          "discounted_price",
-          "images",
-          "handle",
-          "hasMultiplePrice",
-          "price",
-          "reviews_count",
-          "ideal_for_months",
-          "title",
-          "reviews_average",
-          "isActive",
-          "vendor",
-          "variants",
-          "tags",
-          "ideal_for_weights",
-          "options",
-          "size",
-          "meta_avg_ratings",
-          "meta_reviews_count",
-          "variantWithMaxPrice",
-          "variantWithMinPrice",
-          "meta_short_desc",
-        ],
-        textFacets: [],
-        highlightFields: [],
-        searchFields: ["*"],
-        filter: "isSearchable = 1 AND discounted_price > 0 AND isActive = 1",
-        sort: ["-isActive", "-_rank"],
-        skip: 0,
-        count: 10,
-        collection: "1KJ6W6DQYQI78XJQVRE666NI",
-        facetCount: 100,
-        groupCount: -1,
-        typoTolerance: 2,
-        textFacetFilters: {},
-        numericFacets: {},
-        numericFacetFilters: {},
-        textFacetQuery: null,
-        geo: {},
-      },
-      {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Origin: "https://snooplay.in",
-          Authorization: "Bearer 9DFFEFB37BILEAHUF86UPDVM",
-        },
-      }
-    );
-
-    const products = response.data.results.map((item) => new Product(item));
-    setToyList(products);
-  } catch (error) {
-    console.error("Error fetching search results:", error);
-  } finally {
-   
-  }
-};

@@ -13,12 +13,14 @@ import {
 const numColumns = 2;
 const screenWidth = Dimensions.get("window").width;
 const itemWidth = (screenWidth - 48) / 2;
+const defaultImage = require("../assets/snooplay_logo.png");
+
 
 export default function ToyGrid({ toyData = [], onselectedProduct, onScroll,  onEndReached,isLoadingMore }) {
   const renderItem = ({ item }) => {
     const title = item.title || "";
     const imageUrl =
-      item.images && item.images.length > 0 ? item.images[0].url : null;
+      item.images && item.images.length > 0 ? { uri: item.images[0].url } : defaultImage;
     const discount = item.discount || 0;
     const price = item.discounted_price || item.price || 0;
     const originalPrice = price + discount;
@@ -27,7 +29,7 @@ export default function ToyGrid({ toyData = [], onselectedProduct, onScroll,  on
       <View style={[styles.card, { width: itemWidth }]}>
         <View>
           <Image
-            source={{ uri: imageUrl }}
+            source={imageUrl}
             style={styles.image}
             resizeMode="contain"
           />
