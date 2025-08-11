@@ -74,7 +74,7 @@ export default function App() {
     if (!query) return;
     Keyboard.dismiss();
     if (showLoader) setIsLoading(true);
-    await callFetchApi((skipCount = skipCount));
+    await callFetchApi(skipCount);
     if (showLoader) setIsLoading(false); // Hide loader after load
   };
   const callFetchApi = async (skipCount = 0) => {
@@ -86,7 +86,7 @@ export default function App() {
         skills: selectedSkills.length > 0 ? selectedSkills : [],
         mood: selectedMood.length > 0 ? selectedMood : [],
         min_price: 0,
-        max_price: selectedPrice === 0 ? 50000 : selectedPrice,
+        max_price: selectedPrice === 0 ? 500000 : selectedPrice,
       };
       if (excludeIds.length > 0) {
         payload.exclude_ids = excludeIds.map(String);
@@ -184,13 +184,23 @@ export default function App() {
     }
   };
 
-  const setProductData = (response, count) => {   
+  const setProductData = (response, count) => {
     setIsLoadingMore(false);
     const products = response.data.results.map((item) => new Product(item));
-    console.log('products is',products)
+    console.log("products", products);
+    if (products.length === 0) {
+      console.log(
+        "products ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+        products
+      );
+      setIsLoadingMore(false);
+      return;
+    }
     setToyList((prevList) => {
-      if (count === 0) {
-        setToyList([]);
+      if (excludeIds.length != 0) {
+        if(products.length != 0){
+            setToyList([]);
+        }
         return products;
       } else {
         return [...prevList, ...products];
@@ -208,10 +218,12 @@ export default function App() {
   };
 
   const handleLoadMore = async () => {
-    if (isLoadingMore) return;
-    setIsLoadingMore(true);
-    await fetchSearchResults(toyListData.length, false); // skipCount = current list length
-    setTriggerDifferentFetch(false);
+    if (toyListData.length != 0) {
+      if (isLoadingMore) return;
+      setIsLoadingMore(true);
+      await fetchSearchResults(toyListData.length, false); // skipCount = current list length
+      setTriggerDifferentFetch(false);
+    }
   };
 
   return (
@@ -293,7 +305,7 @@ export default function App() {
                   setTriggerDifferentFetch(true);
                 } else {
                   setTriggerDifferentFetch(false);
-                  fetchSearchResults((skipCount = skipCount + 6), true);
+                  fetchSearchResults(toyListData.length, true);
                 }
               }}
             />
@@ -316,7 +328,7 @@ export default function App() {
           toyData={toyListData}
           onScroll={handleToyListScroll}
           onEndReached={handleLoadMore}
-          // isLoadingMore={isLoadingMore}
+          isLoadingMore={isLoadingMore}
           onselectedProduct={(selectedProduct) => {}}
         ></ToyGrid>
       )}

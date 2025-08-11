@@ -15,7 +15,7 @@ export default function PriceSlider({ price = 0, onselectedPrice , onSlidingComp
       <Slider
         style={styles.slider}
         minimumValue={0}
-        maximumValue={50000}
+        maximumValue={500000}
         step={1}
         minimumTrackTintColor="#007BFF"
         maximumTrackTintColor="#ccc"
@@ -24,7 +24,7 @@ export default function PriceSlider({ price = 0, onselectedPrice , onSlidingComp
         onValueChange={handleValueChange}
         onSlidingComplete={onSlidingComplete}
       />
-      <Text style={styles.label}>₹{price === 0 ? 50000 : price}</Text>
+      <Text style={styles.label}>₹{price === 0 ? 500000 : price}</Text>
     </View>
   );
 }
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     width: 50,
     textAlign: "center",
   },

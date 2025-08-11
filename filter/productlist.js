@@ -83,7 +83,7 @@ export default function ToyGrid({ toyData = [], onselectedProduct, onScroll,  on
           ListFooterComponent={
       isLoadingMore ? (
         <View style={{ padding: 16 }}>
-          <ActivityIndicator size="small" color="#007BFF" />
+          <ActivityIndicator size="small" color="#030a12ff" />
         </View>
       ) : null
     }
