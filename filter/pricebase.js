@@ -5,13 +5,14 @@ import Slider from "@react-native-community/slider";
 
 export default function PriceSlider({ price = 0, onselectedPrice , onSlidingComplete }) {
   const handleValueChange = (val) => {
+    console.log('price is ',val)
     onselectedPrice?.(val); // notify parent
   };
 
   return (
     <View style={styles.row}>
       <Text style={styles.title}>Price</Text>
-      <Text style={styles.labelminPrice}>₹0</Text>
+       <Text style={styles.label}>₹{price === 0 ? 0 : price}</Text>
       <Slider
         style={styles.slider}
         minimumValue={0}
@@ -24,7 +25,7 @@ export default function PriceSlider({ price = 0, onselectedPrice , onSlidingComp
         onValueChange={handleValueChange}
         onSlidingComplete={onSlidingComplete}
       />
-      <Text style={styles.label}>₹{price === 0 ? 500000 : price}</Text>
+      <Text style={styles.label}>₹500000</Text>
     </View>
   );
 }
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     width: 50,
     textAlign: "center",
   },

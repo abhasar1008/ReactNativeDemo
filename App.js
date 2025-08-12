@@ -14,6 +14,7 @@ import ToyGrid from "./filter/productlist";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Product from "./models/ProductModel";
+import MultiSlider from "@ptomasroos/react-native-multi-slider";
 
 export default function App() {
   const skillsData = [
@@ -51,6 +52,8 @@ export default function App() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Main Loader
 
+  const [values, setValues] = useState([0, 500000]); // min, max
+
   useEffect(() => {
     if (triggerDifferentFetch) {
       fetchSearchResults(0, true);
@@ -78,6 +81,7 @@ export default function App() {
     if (showLoader) setIsLoading(false); // Hide loader after load
   };
   const callFetchApi = async (skipCount = 0) => {
+    console.log("queery[", query);
     try {
       const payload = {
         query: query,
@@ -85,8 +89,8 @@ export default function App() {
         use_searchtap: true,
         skills: selectedSkills.length > 0 ? selectedSkills : [],
         mood: selectedMood.length > 0 ? selectedMood : [],
-        min_price: 0,
-        max_price: selectedPrice === 0 ? 500000 : selectedPrice,
+        min_price:Number(values?.[0] ?? 0),
+        max_price:Number(values?.[1] ?? 0),
       };
       if (excludeIds.length > 0) {
         payload.exclude_ids = excludeIds.map(String);
@@ -95,6 +99,7 @@ export default function App() {
       if (skipCount !== 0) {
         payload.skip = skipCount;
       }
+      console.log("payload", payload);
       const response = await axios.post(
         "http://snooplay-semantic-api-real.eastus.azurecontainer.io:8000/semantic_search",
         payload,
@@ -105,9 +110,10 @@ export default function App() {
           },
         }
       );
-      console.log("payload", payload);
+
       setProductData(response, skipCount);
     } catch (error) {
+      console.log(error);
       fetchProductData();
     } finally {
     }
@@ -198,8 +204,8 @@ export default function App() {
     }
     setToyList((prevList) => {
       if (excludeIds.length != 0) {
-        if(products.length != 0){
-            setToyList([]);
+        if (products.length != 0) {
+          setToyList([]);
         }
         return products;
       } else {
@@ -237,6 +243,8 @@ export default function App() {
           placeholderTextColor="#999"
           value={query}
           onChangeText={setQuery}
+           multiline={true} 
+          
         />
         <TouchableOpacity
           style={styles.searchButton}
@@ -275,7 +283,7 @@ export default function App() {
               );
             }}
           />
-          <PriceSlider
+          {/* <PriceSlider
             price={selectedPrice}
             onSlidingComplete={() => {
               setTriggerDifferentFetch(false);
@@ -283,12 +291,33 @@ export default function App() {
             }}
             onselectedPrice={(priceSelected = 0) => {
               if (priceSelected === 0) {
+                setSelectedPrice(priceSelected); // always update price
               } else {
                 setToyList([]);
                 setSelectedPrice(priceSelected);
               }
             }}
-          />
+          /> */}
+
+          <View style={styles.sliderRow}>
+            <Text style={styles.label}>Price</Text>
+            <Text style={styles.value}>₹ {values[0]}</Text>
+            <MultiSlider
+              values={values}
+              min={0}
+              max={500000}
+              step={100}
+              sliderLength={180} // Adjust width
+              onValuesChange={(newValues) => setValues(newValues)}
+              selectedStyle={{ backgroundColor: "#4EB5A3" }}
+              markerStyle={{ backgroundColor: "#4EB5A3" }}
+              onValuesChangeFinish={(finalValues) => {
+                setTriggerDifferentFetch(false);
+                fetchSearchResults(0, true);
+              }}
+            />
+            <Text style={styles.value}> ₹ {values[1]}</Text>
+          </View>
 
           {toyListData.length > 0 ? (
             <SkillsRow
@@ -362,36 +391,73 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   searchWrapper: {
+    flexDirection: "row",
     position: "relative",
     marginTop: 10,
     width: "90%",
     marginBottom: 10,
   },
   input: {
-    height: 45,
+    flex: 1,
+    minHeight: 45,
     borderWidth: 1,
     borderColor: "#ccc",
     backgroundColor: "#fff",
     paddingLeft: 10,
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
+    textAlignVertical: "top",
+    paddingTop: 10,// Pushes placeholder down from top
+
   },
   searchButton: {
-    position: "absolute",
-    right: 1,
-    top: 1,
-    bottom: 1,
-    backgroundColor: "#007BFF",
-    paddingHorizontal: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
+     //position: "absolute",
+    // right: 1,
+    // top: 1,
+    // bottom: 1,
+     backgroundColor: "#007BFF",
+     paddingHorizontal: 14,
+     justifyContent: "center",
+     alignItems: "center",
+     borderTopRightRadius: 8,
+     borderBottomRightRadius: 8,
+    
+  
+  
+ 
+  
+  
   },
   searchButtonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    flexShrink: 0, // Prevents it from squeezing
+  },
+  value: {
+    fontSize: 12,
+    color: "#333",
+  },
+  SliderView: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "90%",
+  },
+  Slider: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "90%",
+  },
+  sliderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    justifyContent: "space-between",
+
+    width: "95%",
   },
 });
